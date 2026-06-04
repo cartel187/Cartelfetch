@@ -1,38 +1,33 @@
-name: Refresh All Playlists
+name: Hourly Playlist Update
 
 on:
   schedule:
-    - cron: '0 * * * *' # Runs every hour
-  workflow_dispatch:
+    - cron: '0 * * * *'  # Runs exactly at the start of every hour
+  workflow_dispatch:      # Allows you to click "Run workflow" manually
 
 jobs:
-  refresh:
+  build:
     runs-on: ubuntu-latest
-    # Added permissions to allow the bot to write to the repository
     permissions:
       contents: write
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - name: Checkout Repository
+        uses: actions/checkout@v3
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.2'
+          php-version: '8.1'
+          extensions: curl
 
-      - name: Run update script
+      - name: Fetch Playlists
         run: php update.php
 
-      - name: Commit and push changes
+      - name: Commit and Push Changes
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
-          # Add all modified or new files
           git add .
-          if git diff --cached --quiet; then
-            echo "No changes detected."
-          else
-            git commit -m "Auto-update playlists: $(date)"
-            git push
-          fi
+          # This line checks if there are changes. If no changes, it won't error out.
+          git diff --quiet && git diff --staged --quiet || (git commit -m "Hourly Update: $(date +'%Y-%m-%d %H:%M:%S')" && git push)
