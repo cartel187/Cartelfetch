@@ -1,19 +1,16 @@
-name: Playlist Update
+name: Manual Playlist Fetcher
 
 on:
-  schedule:
-    - cron: '0 */6 * * *'
-  workflow_dispatch:
+  workflow_dispatch: # This enables the "Run workflow" button
 
 jobs:
-  build:
+  fetch-job:
     runs-on: ubuntu-latest
-    # CRITICAL: This gives the action permission to write the file back to your repo
     permissions:
-      contents: write
+      contents: write # Important: allows saving the file to your repo
       
     steps:
-      - name: Checkout code
+      - name: Checkout Code
         uses: actions/checkout@v3
 
       - name: Setup PHP
@@ -21,13 +18,13 @@ jobs:
         with:
           php-version: '8.1'
 
-      - name: Run Fetcher
+      - name: Execute Fetcher
         run: php update.php
 
-      - name: Commit and Push
+      - name: Commit and Push Changes
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git add playlist.m3u
-          # Only commit if there are changes
-          git diff --quiet && git diff --staged --quiet || (git commit -m "Auto Update Playlist" && git push)
+          # Commit only if the playlist was actually updated
+          git diff --quiet && git diff --staged --quiet || (git commit -m "Manual Update: $(date)" && git push)
