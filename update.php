@@ -1,58 +1,64 @@
 <?php
-/**
- * CartelFetch - Enhanced Stealth M3U Fetcher
- */
+// Configuration
+$source_url = "https://play.ksrtech.fun/playlist.php?token=fb5198ff3896583e4c7d92aee27400fa";
+$output_file = "playlist.m3u";
 
-$sources = [
-    "playlist.m3u" => "https://server.lrl45.workers.dev/channel/raw?=m3u",
+// Common IPTV User-Agents to bypass blocks
+$user_agents = [
+    'VLC/3.0.12 LibVLC/3.0.12',
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36',
+    'OTT Navigator/1.6.7.7'
 ];
 
-foreach ($sources as $fileName => $url) {
-    echo "[*] Fetching: $fileName\n";
+echo "Starting fetcher...\n";
 
-    $ch = curl_init();
-    curl_setopt($ch, CURLOPT_URL, $url);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
-    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-    curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
-    curl_setopt($ch, CURLOPT_TIMEOUT, 120); // Longer timeout for large lists
-    
-    // CRITICAL: This handles the GZIP compression many panels use
-    curl_setopt($ch, CURLOPT_ENCODING, ""); 
+$ch = curl_init();
+curl_setopt($ch, CURLOPT_URL, $source_url);
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+curl_setopt($ch, CURLOPT_USERAGENT, $user_agents[array_rand($user_agents)]);
+curl_setopt($ch, CURLOPT_TIMEOUT, 30); // 30 seconds timeout
+curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); // Ignore SSL errors if any
+curl_setopt($ch, CURLOPT_HTTPHEADER, [
+    'Accept: */*',
+    'Connection: keep-alive',
+    'Referer: https://play.ksrtech.fun/'
+]);
 
-    // CRITICAL: Mimicking a premium OTT Navigator app exactly
-    $headers = [
-        'User-Agent: OTTNavigator/1.7.1.2 (Linux; Android 11; M2007J20CG Build/RKQ1.200826.002; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/114.0.5735.196 Mobile Safari/537.36',
-        'Accept: */*',
-        'Accept-Encoding: gzip, deflate, br',
-        'Connection: keep-alive',
-        'X-Requested-With: com.loitp.ottnavigator',
-    ];
-    curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+$data = curl_exec($ch);
+$http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+curl_close($ch);
 
-    $content = curl_exec($ch);
-    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    curl_close($ch);
+if ($http_code !== 200 || empty($data)) {
+    die("Error: Failed to fetch playlist. HTTP Code: $http_code\n");
+}
 
-    if ($httpCode === 200 && !empty($content)) {
-        // Check if the content actually contains channels (#EXTINF)
-        // If it only contains #EXTM3U, it failed to get the list.
-        $hasChannels = (stripos($content, '#EXTINF') !== false);
-        
-        if ($hasChannels) {
-            file_put_contents($fileName, $content);
-            echo "[+] Success! Fetched " . substr_count($content, '#EXTINF') . " channels.\n";
-            echo "[+] Saved to $fileName\n";
-        } else {
-            echo "[-] Error: Received Header but NO channels. The server is blocking the GitHub IP or requires a new token.\n";
-            // Check if the server sent an error message in the text
-            if (strlen($content) < 500) {
-                echo "[Debug] Server Response: " . strip_tags($content) . "\n";
-            }
-        }
-    } else {
-        echo "[-] HTTP Error: $httpCode\n";
+// POWERFUL STEP: Content Validation
+// Check if it's actually an M3U file
+if (strpos($data, "#EXTM3U") === false) {
+    die("Error: The fetched content is not a valid M3U playlist.\n");
+}
+
+// POWERFUL STEP: Data Cleaning
+// Remove empty lines and normalize line endings
+$lines = explode("\n", str_replace(["\r\n", "\r"], "\n", $data));
+$cleaned_lines = [];
+
+foreach ($lines as $line) {
+    $trimmed = trim($line);
+    if (!empty($trimmed)) {
+        // Optional: Filter out specific keywords if needed
+        // if (strpos($trimmed, 'ADULT') !== false) continue; 
+        $cleaned_lines[] = $trimmed;
     }
+}
+
+$final_playlist = implode("\n", $cleaned_lines);
+
+// Save the file
+if (file_put_contents($output_file, $final_playlist)) {
+    echo "Successfully updated $output_file (" . count($cleaned_lines) . " lines found).\n";
+} else {
+    echo "Error: Failed to save the file.\n";
 }
 ?>
