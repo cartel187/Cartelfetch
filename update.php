@@ -1,6 +1,6 @@
 <?php
 // Configuration
-$source_url = "https://play.ksrtech.fun/playlist.php?token=fb5198ff3896583e4c7d92aee27400fa";
+$source_url = "https://yowaimo.in/StreamFlexTv/master.php?name=SF10DDCY&token=5941b39419721b087512fc0c";
 $output_file = "playlist.m3u";
 
 echo "Manual fetch started...\n";
