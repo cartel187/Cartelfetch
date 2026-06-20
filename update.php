@@ -1,6 +1,6 @@
 <?php
 // Configuration
-$source_url = "https://game.denver69.fun/Jtv/UTiYBu/Playlist.m3u";
+$source_url = "https://avengersiptv.online/short/DKU15";
 $output_file = "playlist.m3u";
 
 echo "Manual fetch started...\n";
