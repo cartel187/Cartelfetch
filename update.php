@@ -1,6 +1,6 @@
 <?php
 // Configuration
-$source_url = "https://avengersiptv.online/short/DKU15";
+$source_url = "https://yowaimo.in/TUTASKY/HeheGandu/playlist.php";
 $output_file = "playlist.m3u";
 
 echo "Manual fetch started...\n";
