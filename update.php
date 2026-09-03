@@ -1,6 +1,6 @@
 <?php
 // Configuration
-$source_url = "https://yowaimo.in/TUTASKY/HeheGandu/playlist.php";
+$source_url = "https://premiumplugx.com/VIP/playlist.m3u";
 $output_file = "playlist.m3u";
 
 echo "Manual fetch started...\n";
