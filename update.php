@@ -1,6 +1,6 @@
 <?php
 // Configuration
-$source_url = "https://premiumplugx.com/VIP/playlist.m3u";
+$source_url = "https://saarstalk.cartel187.workers.dev/playlist.m3u8";
 $output_file = "playlist.m3u";
 
 echo "Manual fetch started...\n";
