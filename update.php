@@ -1,6 +1,6 @@
 <?php
 // Configuration
-$source_url = "https://saarstalk.cartel187.workers.dev/playlist.m3u8";
+$source_url = "https://play.ksrtech.fun/playlist.php?token=67e6726f7634a3633c6062a7d4eac579";
 $output_file = "playlist.m3u";
 
 echo "Manual fetch started...\n";
